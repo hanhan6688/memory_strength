@@ -36,10 +36,15 @@ def list_memories():
     agent_id = request.args.get('agent', 'default')
     memories = ms.get_all_memories(limit)
     
-    # 按 Agent 过滤
-    memories = [m for m in memories if m.get('agent_id', 'default') == agent_id]
+    # 按 Agent 过滤（如果没有 agent_id 字段，则不过滤）
+    filtered = []
+    for m in memories:
+        mem_agent = m.get('agent_id', 'default')
+        # 如果记忆没有 agent_id 或者 agent_id 匹配，则包含
+        if mem_agent == agent_id or (mem_agent == 'default' and agent_id == 'main'):
+            filtered.append(m)
     
-    return jsonify({"memories": memories, "count": len(memories), "agent_id": agent_id})
+    return jsonify({"memories": filtered, "count": len(filtered), "agent_id": agent_id})
 
 @app.route('/api/memories', methods=['POST'])
 def add_memory():
@@ -128,10 +133,37 @@ def delete_memory(memory_id):
 
 @app.route('/api/entities', methods=['GET'])
 def list_entities():
-    """获取所有实体"""
-    ms = get_memory_system()
-    entities = ms.get_all_entities()
-    return jsonify({"entities": entities, "count": len(entities)})
+    """获取所有实体（从 Weaviate）"""
+    query = {
+        "query": '''{
+            Get {
+                Entity(limit: 100) {
+                    _additional { id }
+                    name entityType mentionCount
+                }
+            }
+        }'''
+    }
+    
+    try:
+        resp = requests.post(
+            f"{WEAVIATE_URL}/v1/graphql",
+            json=query,
+            proxies={"http": None, "https": None},
+            timeout=10
+        )
+        
+        entities = resp.json().get("data", {}).get("Get", {}).get("Entity", [])
+        
+        result = [{
+            "name": e.get("name"),
+            "entityType": e.get("entityType"),
+            "mentionCount": e.get("mentionCount", 1)
+        } for e in entities]
+        
+        return jsonify({"entities": result, "count": len(result)})
+    except Exception as e:
+        return jsonify({"error": str(e), "entities": []}), 500
 
 @app.route('/api/entities', methods=['POST'])
 def add_entity():
