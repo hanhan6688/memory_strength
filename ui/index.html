@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>🧠 Enhanced Memory System</title>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
@@ -12,543 +11,419 @@
             background: linear-gradient(135deg, #0f0c29 0%, #302b63 50%, #24243e 100%);
             min-height: 100vh; color: #e0e0e0;
         }
-        .container { max-width: 1600px; margin: 0 auto; padding: 20px; }
+        .container { max-width: 1400px; margin: 0 auto; padding: 20px; }
         
         /* Header */
         header {
             display: flex; justify-content: space-between; align-items: center;
-            padding: 20px 30px; background: rgba(255,255,255,0.05);
-            border-radius: 16px; margin-bottom: 20px;
+            padding: 16px 24px; background: rgba(255,255,255,0.05);
+            border-radius: 12px; margin-bottom: 16px;
             backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.1);
         }
-        h1 { font-size: 28px; display: flex; align-items: center; gap: 12px; }
-        .stats-row { display: flex; gap: 15px; }
-        .stat-card {
-            background: linear-gradient(135deg, rgba(79,195,247,0.2), rgba(129,199,132,0.2));
-            padding: 15px 25px; border-radius: 12px; text-align: center;
-            border: 1px solid rgba(255,255,255,0.1); min-width: 100px;
-            transition: transform 0.3s, box-shadow 0.3s; cursor: pointer;
-        }
-        .stat-card:hover { transform: translateY(-3px); box-shadow: 0 10px 30px rgba(0,0,0,0.3); }
-        .stat-value { font-size: 32px; font-weight: bold; background: linear-gradient(45deg, #4fc3f7, #81c784); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-        .stat-label { font-size: 12px; color: #888; margin-top: 4px; }
+        h1 { font-size: 24px; display: flex; align-items: center; gap: 10px; }
+        .stats { display: flex; gap: 20px; }
+        .stat { text-align: center; }
+        .stat-value { font-size: 28px; font-weight: bold; color: #4fc3f7; }
+        .stat-label { font-size: 11px; color: #888; }
         
-        /* Tabs Navigation */
-        .nav-tabs { display: flex; gap: 10px; margin-bottom: 20px; }
-        .nav-tab {
-            padding: 12px 24px; border-radius: 12px; cursor: pointer;
-            font-size: 14px; font-weight: 500;
-            background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);
-            transition: all 0.3s;
-        }
-        .nav-tab:hover { background: rgba(255,255,255,0.1); }
-        .nav-tab.active { background: linear-gradient(135deg, #4fc3f7, #29b6f6); color: #1a1a2e; border-color: transparent; }
-        
-        /* Main Grid */
-        .main-grid { display: grid; grid-template-columns: 280px 1fr 320px; gap: 20px; }
+        /* Main Layout */
+        .main-layout { display: grid; grid-template-columns: 260px 1fr 280px; gap: 16px; height: calc(100vh - 140px); }
         
         /* Panel */
         .panel {
-            background: rgba(255,255,255,0.03); border-radius: 16px;
-            padding: 20px; border: 1px solid rgba(255,255,255,0.08);
-            backdrop-filter: blur(5px);
+            background: rgba(255,255,255,0.03); border-radius: 12px;
+            border: 1px solid rgba(255,255,255,0.08);
+            display: flex; flex-direction: column;
         }
-        .panel-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
-        .panel-title { font-size: 16px; font-weight: 600; display: flex; align-items: center; gap: 8px; }
+        .panel-header {
+            padding: 14px 16px; border-bottom: 1px solid rgba(255,255,255,0.08);
+            font-weight: 600; font-size: 14px; display: flex; align-items: center; gap: 8px;
+        }
         
-        /* Date Navigation */
-        .date-nav { margin-bottom: 16px; }
-        .date-picker-row { display: flex; gap: 10px; align-items: center; margin-bottom: 10px; }
-        .date-picker-row input {
-            flex: 1; padding: 10px 12px; border: 1px solid rgba(255,255,255,0.15);
-            border-radius: 8px; background: rgba(255,255,255,0.05);
-            color: #fff; font-size: 13px;
-        }
-        .quick-dates { display: flex; flex-wrap: wrap; gap: 6px; }
-        .quick-date {
-            padding: 6px 12px; border-radius: 16px; font-size: 12px;
-            background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);
-            cursor: pointer; transition: all 0.3s;
-        }
-        .quick-date:hover, .quick-date.active { background: rgba(79,195,247,0.2); border-color: #4fc3f7; }
+        /* Date List */
+        .date-list { flex: 1; overflow-y: auto; padding: 8px; }
+        .date-list::-webkit-scrollbar { width: 4px; }
+        .date-list::-webkit-scrollbar-thumb { background: rgba(79,195,247,0.3); border-radius: 2px; }
         
-        /* Calendar */
-        .calendar { margin-top: 10px; }
-        .calendar-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
-        .calendar-nav { cursor: pointer; padding: 4px 8px; border-radius: 6px; transition: background 0.3s; }
-        .calendar-nav:hover { background: rgba(255,255,255,0.1); }
-        .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
-        .calendar-day {
-            text-align: center; padding: 8px 4px; font-size: 12px;
-            border-radius: 6px; cursor: pointer; transition: all 0.3s;
+        .date-item {
+            padding: 12px 14px; border-radius: 8px; margin-bottom: 4px;
+            cursor: pointer; transition: all 0.2s;
+            display: flex; justify-content: space-between; align-items: center;
         }
-        .calendar-day:hover { background: rgba(255,255,255,0.1); }
-        .calendar-day.today { background: rgba(79,195,247,0.3); color: #fff; }
-        .calendar-day.has-memory { background: rgba(129,199,132,0.2); }
-        .calendar-day.selected { background: #4fc3f7; color: #1a1a2e; font-weight: 600; }
-        .calendar-day.other-month { color: #555; }
-        
-        /* Search */
-        .search-box { display: flex; gap: 10px; margin-bottom: 16px; }
-        .search-box input {
-            flex: 1; padding: 12px 16px; border: 1px solid rgba(255,255,255,0.15);
-            border-radius: 10px; background: rgba(255,255,255,0.05);
-            color: #fff; font-size: 14px; transition: border-color 0.3s;
+        .date-item:hover { background: rgba(255,255,255,0.08); }
+        .date-item.active { 
+            background: linear-gradient(135deg, rgba(79,195,247,0.2), rgba(129,199,132,0.2));
+            border-left: 3px solid #4fc3f7;
         }
-        .search-box input:focus { outline: none; border-color: #4fc3f7; box-shadow: 0 0 15px rgba(79,195,247,0.3); }
-        .btn {
-            padding: 12px 20px; border: none; border-radius: 10px;
-            cursor: pointer; font-size: 14px; font-weight: 500;
-            transition: all 0.3s;
+        .date-label { font-size: 14px; font-weight: 500; }
+        .date-count { 
+            font-size: 11px; background: rgba(79,195,247,0.2); 
+            padding: 2px 8px; border-radius: 10px; color: #4fc3f7;
         }
-        .btn-primary { background: linear-gradient(135deg, #4fc3f7, #29b6f6); color: #1a1a2e; }
-        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 5px 20px rgba(79,195,247,0.4); }
-        .btn-secondary { background: rgba(255,255,255,0.1); color: #fff; }
-        .btn-secondary:hover { background: rgba(255,255,255,0.2); }
-        
-        /* Time Range Query */
-        .time-query-box { margin-bottom: 16px; padding: 12px; background: rgba(79,195,247,0.1); border-radius: 10px; }
-        .time-query-box input { background: rgba(255,255,255,0.1); }
-        .time-query-hint { font-size: 11px; color: #888; margin-top: 6px; }
-        
-        /* Tabs */
-        .tabs { display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; }
-        .tab {
-            padding: 8px 16px; border-radius: 20px; cursor: pointer;
-            font-size: 13px; background: rgba(255,255,255,0.05);
-            border: 1px solid rgba(255,255,255,0.1);
-            transition: all 0.3s;
-        }
-        .tab:hover { background: rgba(255,255,255,0.1); }
-        .tab.active { background: linear-gradient(135deg, #4fc3f7, #29b6f6); color: #1a1a2e; border-color: transparent; }
+        .date-item.today .date-label { color: #81c784; }
+        .date-item.today .date-label::after { content: ' (今天)'; font-size: 11px; }
         
         /* Memory List */
-        .memory-list { max-height: calc(100vh - 400px); overflow-y: auto; padding-right: 5px; }
-        .memory-list::-webkit-scrollbar { width: 6px; }
-        .memory-list::-webkit-scrollbar-track { background: rgba(255,255,255,0.05); border-radius: 3px; }
-        .memory-list::-webkit-scrollbar-thumb { background: rgba(79,195,247,0.3); border-radius: 3px; }
+        .memory-list { flex: 1; overflow-y: auto; padding: 12px; }
+        .memory-list::-webkit-scrollbar { width: 4px; }
+        .memory-list::-webkit-scrollbar-thumb { background: rgba(79,195,247,0.3); border-radius: 2px; }
         
         .memory-item {
-            background: rgba(255,255,255,0.03); border-radius: 12px;
-            padding: 14px 16px; margin-bottom: 10px;
-            border-left: 4px solid #4fc3f7;
-            transition: all 0.3s; cursor: pointer;
-            animation: fadeIn 0.3s ease-out;
+            background: rgba(255,255,255,0.02); border-radius: 10px;
+            padding: 14px 16px; margin-bottom: 8px;
+            border-left: 3px solid #4fc3f7;
+            transition: all 0.2s;
         }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-        .memory-item:hover { background: rgba(255,255,255,0.08); transform: translateX(5px); }
+        .memory-item:hover { background: rgba(255,255,255,0.05); }
         .memory-item.decision { border-left-color: #ce93d8; }
         .memory-item.event { border-left-color: #81c784; }
         .memory-item.learning { border-left-color: #ffb74d; }
         
-        .memory-content { font-size: 14px; line-height: 1.5; margin-bottom: 8px; color: #e0e0e0; }
-        .memory-meta { display: flex; gap: 10px; align-items: center; font-size: 11px; color: #888; }
+        .memory-content { font-size: 14px; line-height: 1.6; margin-bottom: 8px; }
+        .memory-meta { display: flex; gap: 10px; font-size: 11px; color: #888; }
         .type-badge {
-            font-size: 10px; padding: 3px 10px; border-radius: 12px;
-            text-transform: uppercase; font-weight: 600;
+            padding: 2px 10px; border-radius: 10px; font-size: 10px; font-weight: 600;
         }
         .type-badge.decision { background: rgba(206,147,216,0.2); color: #ce93d8; }
         .type-badge.event { background: rgba(129,199,132,0.2); color: #81c784; }
         .type-badge.context { background: rgba(79,195,247,0.2); color: #4fc3f7; }
         .type-badge.learning { background: rgba(255,183,77,0.2); color: #ffb74d; }
         
-        /* Timeline */
-        .timeline-date {
-            font-size: 13px; font-weight: 600; color: #4fc3f7;
-            margin: 16px 0 8px; padding-bottom: 6px;
-            border-bottom: 1px solid rgba(255,255,255,0.1);
-            display: flex; align-items: center; justify-content: space-between;
-            cursor: pointer;
+        /* Search */
+        .search-box { padding: 12px; border-bottom: 1px solid rgba(255,255,255,0.08); }
+        .search-box input {
+            width: 100%; padding: 10px 14px; border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 8px; background: rgba(255,255,255,0.05);
+            color: #fff; font-size: 13px;
         }
-        .timeline-date:hover { color: #81c784; }
-        .timeline-count { font-size: 11px; color: #888; }
-        .timeline-item {
-            padding: 10px 12px; margin-bottom: 6px;
-            background: rgba(255,255,255,0.02); border-radius: 8px;
-            font-size: 12px; transition: all 0.3s; cursor: pointer;
-            border-left: 3px solid transparent;
-        }
-        .timeline-item:hover { background: rgba(255,255,255,0.06); border-left-color: #4fc3f7; }
+        .search-box input:focus { outline: none; border-color: #4fc3f7; }
         
-        /* Entity Card */
-        .entity-card {
-            display: flex; align-items: center; gap: 12px;
-            padding: 12px; background: rgba(255,255,255,0.03);
-            border-radius: 12px; margin-bottom: 10px;
-            transition: all 0.3s; cursor: pointer;
-        }
-        .entity-card:hover { background: rgba(255,255,255,0.08); transform: translateX(5px); }
-        .entity-icon {
-            width: 40px; height: 40px; border-radius: 10px;
-            display: flex; align-items: center; justify-content: center; font-size: 20px;
-        }
-        .entity-icon.project { background: linear-gradient(135deg, rgba(129,199,132,0.3), rgba(102,187,106,0.3)); }
-        .entity-icon.tool { background: linear-gradient(135deg, rgba(79,195,247,0.3), rgba(41,182,246,0.3)); }
-        .entity-icon.concept { background: linear-gradient(135deg, rgba(206,147,216,0.3), rgba(186,104,200,0.3)); }
-        .entity-info { flex: 1; }
-        .entity-name { font-weight: 600; font-size: 14px; margin-bottom: 2px; }
-        .entity-type { font-size: 11px; color: #888; }
+        /* Time Query */
+        .time-query { padding: 12px; border-bottom: 1px solid rgba(255,255,255,0.08); }
+        .time-query input { width: 100%; padding: 8px 12px; border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 6px; background: rgba(255,255,255,0.05); color: #fff; font-size: 12px; }
+        .time-query-hint { font-size: 10px; color: #666; margin-top: 4px; }
         
-        /* Charts */
-        .chart-container { padding: 15px; background: rgba(255,255,255,0.02); border-radius: 12px; margin-bottom: 15px; }
-        .chart-title { font-size: 13px; color: #888; margin-bottom: 10px; }
+        /* Add Memory */
+        .add-memory { padding: 12px; border-top: 1px solid rgba(255,255,255,0.08); }
+        .add-memory textarea {
+            width: 100%; padding: 10px; border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 8px; background: rgba(255,255,255,0.05);
+            color: #fff; font-size: 13px; resize: none; height: 60px;
+        }
+        .add-memory textarea:focus { outline: none; border-color: #4fc3f7; }
+        .add-row { display: flex; gap: 8px; margin-top: 8px; }
+        .add-row select, .add-row input {
+            flex: 1; padding: 6px 10px; border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 6px; background: rgba(255,255,255,0.05);
+            color: #fff; font-size: 12px;
+        }
+        .add-row select option { background: #1a1a2e; }
+        .btn {
+            padding: 8px 16px; border: none; border-radius: 6px;
+            cursor: pointer; font-size: 12px; font-weight: 500;
+            transition: all 0.2s;
+        }
+        .btn-primary { background: #4fc3f7; color: #1a1a2e; }
+        .btn-primary:hover { background: #29b6f6; }
         
         /* Empty State */
         .empty { text-align: center; padding: 40px 20px; color: #666; }
-        .empty-icon { font-size: 48px; margin-bottom: 10px; opacity: 0.5; }
+        .empty-icon { font-size: 40px; margin-bottom: 8px; opacity: 0.5; }
         
-        /* Responsive */
-        @media (max-width: 1200px) {
-            .main-grid { grid-template-columns: 1fr; }
+        /* Entity List */
+        .entity-list { flex: 1; overflow-y: auto; padding: 12px; }
+        .entity-item {
+            display: flex; align-items: center; gap: 10px;
+            padding: 10px; background: rgba(255,255,255,0.02);
+            border-radius: 8px; margin-bottom: 6px;
         }
+        .entity-icon {
+            width: 32px; height: 32px; border-radius: 8px;
+            display: flex; align-items: center; justify-content: center; font-size: 16px;
+            background: rgba(79,195,247,0.2);
+        }
+        .entity-name { font-size: 13px; font-weight: 500; }
+        .entity-meta { font-size: 10px; color: #888; }
         
-        /* Loading */
-        .loading { display: flex; align-items: center; justify-content: center; padding: 40px; }
-        .spinner { width: 30px; height: 30px; border: 3px solid rgba(79,195,247,0.3); border-top-color: #4fc3f7; border-radius: 50%; animation: spin 1s linear infinite; }
-        @keyframes spin { to { transform: rotate(360deg); } }
+        /* Current Date Display */
+        .current-date {
+            padding: 10px 14px; background: rgba(79,195,247,0.1);
+            border-radius: 8px; margin: 8px; text-align: center;
+        }
+        .current-date-value { font-size: 18px; font-weight: 600; color: #4fc3f7; }
+        .current-date-count { font-size: 11px; color: #888; margin-top: 2px; }
     </style>
 </head>
 <body>
     <div class="container">
         <header>
             <h1>🧠 Enhanced Memory</h1>
-            <div class="stats-row" id="stats-row">
-                <div class="stat-card" onclick="showAll()">
-                    <div class="stat-value" id="stat-mem">-</div>
+            <div class="stats">
+                <div class="stat">
+                    <div class="stat-value" id="total-mem">0</div>
                     <div class="stat-label">总记忆</div>
                 </div>
-                <div class="stat-card">
-                    <div class="stat-value" id="stat-ent">-</div>
-                    <div class="stat-label">实体</div>
+                <div class="stat">
+                    <div class="stat-value" id="total-dates">0</div>
+                    <div class="stat-label">日期</div>
                 </div>
-                <div class="stat-card" onclick="filterByDate(today())">
-                    <div class="stat-value" id="stat-today">-</div>
-                    <div class="stat-label">今日</div>
+                <div class="stat">
+                    <div class="stat-value" id="total-entities">0</div>
+                    <div class="stat-label">实体</div>
                 </div>
             </div>
         </header>
 
-        <!-- Navigation Tabs -->
-        <div class="nav-tabs">
-            <div class="nav-tab active" onclick="switchTab('memories')">🔍 记忆检索</div>
-            <div class="nav-tab" onclick="switchTab('timeline')">📅 时间线</div>
-            <div class="nav-tab" onclick="switchTab('graph')">🕸️ 知识图谱</div>
-            <div class="nav-tab" onclick="switchTab('timequery')">⏰ 时间查询</div>
-        </div>
-
-        <div class="main-grid" id="main-content">
-            <!-- Left: Calendar + Stats -->
+        <div class="main-layout">
+            <!-- Left: Date List -->
             <div class="panel">
-                <div class="panel-header">
-                    <div class="panel-title">📅 日期导航</div>
+                <div class="panel-header">📅 日期导航</div>
+                <div class="time-query">
+                    <input type="text" id="time-query" placeholder="时间查询: 上个月/昨天...">
+                    <div class="time-query-hint">支持: 今天、昨天、上周、上个月、最近N天</div>
                 </div>
-                
-                <!-- Calendar -->
-                <div class="calendar">
-                    <div class="calendar-header">
-                        <span class="calendar-nav" onclick="prevMonth()">◀</span>
-                        <span id="calendar-month">2026年3月</span>
-                        <span class="calendar-nav" onclick="nextMonth()">▶</span>
-                    </div>
-                    <div class="calendar-grid" id="calendar-grid"></div>
-                </div>
-                
-                <!-- Quick Dates -->
-                <div class="date-nav" style="margin-top: 16px;">
-                    <div class="panel-title" style="margin-bottom: 10px;">快捷选择</div>
-                    <div class="quick-dates">
-                        <div class="quick-date" onclick="filterByDate(today())">今天</div>
-                        <div class="quick-date" onclick="filterByDate(yesterday())">昨天</div>
-                        <div class="quick-date" onclick="filterByRange('week')">本周</div>
-                        <div class="quick-date" onclick="filterByRange('month')">本月</div>
-                        <div class="quick-date" onclick="filterByRange('last7')">最近7天</div>
-                        <div class="quick-date" onclick="filterByRange('last30')">最近30天</div>
-                    </div>
-                </div>
-                
-                <!-- Chart -->
-                <div class="chart-container" style="margin-top: 16px;">
-                    <div class="chart-title">类型分布</div>
-                    <canvas id="typeChart" height="120"></canvas>
+                <div class="date-list" id="date-list">
+                    <div class="empty"><div class="empty-icon">📅</div>加载中...</div>
                 </div>
             </div>
 
-            <!-- Center: Memory Search -->
+            <!-- Center: Memory List -->
             <div class="panel">
                 <div class="panel-header">
-                    <div class="panel-title">🔍 记忆检索</div>
-                    <span id="current-filter" style="font-size: 12px; color: #888;"></span>
+                    <span id="mem-header">📝 记忆列表</span>
                 </div>
-                
-                <!-- Search -->
                 <div class="search-box">
-                    <input type="text" id="q" placeholder="搜索记忆... (支持语义搜索)" onkeypress="if(event.key==='Enter')search()">
-                    <button class="btn btn-primary" onclick="search()">搜索</button>
+                    <input type="text" id="search-input" placeholder="搜索记忆 (语义搜索)..." onkeypress="if(event.key==='Enter')searchMemories()">
                 </div>
-                
-                <!-- Time Range Query -->
-                <div class="time-query-box">
-                    <div class="search-box" style="margin-bottom: 0;">
-                        <input type="text" id="time-q" placeholder="时间范围查询: 上个月 / 昨天 / 最近7天...">
-                        <button class="btn btn-secondary" onclick="timeSearch()">查询</button>
+                <div class="current-date" id="current-date-box" style="display:none">
+                    <div class="current-date-value" id="current-date-val"></div>
+                    <div class="current-date-count" id="current-date-count"></div>
+                </div>
+                <div class="memory-list" id="memory-list">
+                    <div class="empty"><div class="empty-icon">🧠</div>选择日期查看记忆</div>
+                </div>
+                <div class="add-memory">
+                    <textarea id="new-memory" placeholder="添加新记忆..."></textarea>
+                    <div class="add-row">
+                        <select id="mem-type">
+                            <option value="context">💡 上下文</option>
+                            <option value="event">📅 事件</option>
+                            <option value="decision">🎯 决策</option>
+                            <option value="learning">📚 学习</option>
+                        </select>
+                        <input type="number" id="mem-imp" value="0.5" min="0" max="1" step="0.1" placeholder="重要性">
+                        <button class="btn btn-primary" onclick="addMemory()">添加</button>
                     </div>
-                    <div class="time-query-hint">支持: 今天、昨天、上周、上个月、最近N天、YYYY-MM-DD</div>
                 </div>
-                
-                <!-- Type Filter -->
-                <div class="tabs">
-                    <div class="tab active" onclick="filter('all')">全部</div>
-                    <div class="tab" onclick="filter('decision')">🎯 决策</div>
-                    <div class="tab" onclick="filter('event')">📅 事件</div>
-                    <div class="tab" onclick="filter('context')">💡 上下文</div>
-                    <div class="tab" onclick="filter('learning')">📚 学习</div>
-                </div>
-                
-                <!-- Results -->
-                <div class="memory-list" id="memories"><div class="loading"><div class="spinner"></div></div></div>
             </div>
 
             <!-- Right: Entities -->
             <div class="panel">
-                <div class="panel-header">
-                    <div class="panel-title">🔗 知识图谱</div>
-                </div>
-                
+                <div class="panel-header">🔗 知识图谱</div>
                 <div class="search-box">
-                    <input type="text" id="eq" placeholder="搜索实体..." onkeypress="if(event.key==='Enter')searchEnt()">
-                    <button class="btn btn-secondary" onclick="searchEnt()">搜索</button>
+                    <input type="text" id="entity-search" placeholder="搜索实体..." onkeypress="if(event.key==='Enter')searchEntities()">
                 </div>
-                
-                <div class="memory-list" id="entities"><div class="loading"><div class="spinner"></div></div></div>
+                <div class="entity-list" id="entity-list">
+                    <div class="empty"><div class="empty-icon">🔗</div>加载中...</div>
+                </div>
             </div>
         </div>
     </div>
 
     <script>
         const API = '/api';
-        let allMem = [], filterType = 'all', typeChart = null;
-        let currentYear = new Date().getFullYear();
-        let currentMonth = new Date().getMonth();
+        let allMemories = [];
+        let allDates = {};
         let selectedDate = null;
-        let memoryDates = {};
+        const today = new Date().toISOString().split('T')[0];
 
         // 初始化
         document.addEventListener('DOMContentLoaded', () => {
-            loadStats();
-            loadMemories();
+            loadAllMemories();
             loadEntities();
-            renderCalendar();
+            
+            // 时间查询回车事件
+            document.getElementById('time-query').addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') timeQuery();
+            });
         });
 
-        // 日期辅助函数
-        function today() { return new Date().toISOString().split('T')[0]; }
-        function yesterday() {
-            const d = new Date();
-            d.setDate(d.getDate() - 1);
-            return d.toISOString().split('T')[0];
-        }
-
-        // 加载统计
-        async function loadStats() {
-            try {
-                const resp = await fetch(`${API}/stats`);
-                const data = await resp.json();
-                document.getElementById('stat-mem').textContent = data.total_memories || 0;
-                document.getElementById('stat-ent').textContent = data.total_entities || 0;
-                document.getElementById('stat-today').textContent = data.by_date?.[today()] || 0;
-                
-                memoryDates = data.by_date || {};
-                renderTypeChart(data.by_type || {});
-                renderCalendar();
-            } catch (e) { console.error(e); }
-        }
-
-        // 渲染日历
-        function renderCalendar() {
-            const monthNames = ['1月', '2月', '3月', '4月', '5月', '6月', '7月', '8月', '9月', '10月', '11月', '12月'];
-            document.getElementById('calendar-month').textContent = `${currentYear}年${monthNames[currentMonth]}`;
-            
-            const grid = document.getElementById('calendar-grid');
-            const firstDay = new Date(currentYear, currentMonth, 1);
-            const lastDay = new Date(currentYear, currentMonth + 1, 0);
-            
-            let html = '';
-            
-            // 星期标题
-            const weekDays = ['日', '一', '二', '三', '四', '五', '六'];
-            weekDays.forEach(d => {
-                html += `<div class="calendar-day" style="color: #888; cursor: default;">${d}</div>`;
-            });
-            
-            // 上月的日期
-            const startDay = firstDay.getDay();
-            const prevMonth = new Date(currentYear, currentMonth, 0);
-            for (let i = startDay - 1; i >= 0; i--) {
-                const day = prevMonth.getDate() - i;
-                html += `<div class="calendar-day other-month">${day}</div>`;
-            }
-            
-            // 当月日期
-            const todayStr = today();
-            for (let day = 1; day <= lastDay.getDate(); day++) {
-                const dateStr = `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-                const hasMemory = memoryDates[dateStr] > 0;
-                const isToday = dateStr === todayStr;
-                const isSelected = dateStr === selectedDate;
-                
-                let classes = 'calendar-day';
-                if (isToday) classes += ' today';
-                if (hasMemory) classes += ' has-memory';
-                if (isSelected) classes += ' selected';
-                
-                const count = memoryDates[dateStr] || 0;
-                const tooltip = hasMemory ? ` title="${count} 条记忆"` : '';
-                
-                html += `<div class="${classes}" onclick="filterByDate('${dateStr}')"${tooltip}>${day}${hasMemory ? '<span style="font-size:8px;color:#81c784">●</span>' : ''}</div>`;
-            }
-            
-            // 下月的日期
-            const endDay = lastDay.getDay();
-            for (let day = 1; day < 7 - endDay; day++) {
-                html += `<div class="calendar-day other-month">${day}</div>`;
-            }
-            
-            grid.innerHTML = html;
-        }
-
-        function prevMonth() {
-            currentMonth--;
-            if (currentMonth < 0) { currentMonth = 11; currentYear--; }
-            renderCalendar();
-        }
-
-        function nextMonth() {
-            currentMonth++;
-            if (currentMonth > 11) { currentMonth = 0; currentYear++; }
-            renderCalendar();
-        }
-
-        // 按日期筛选
-        function filterByDate(dateStr) {
-            selectedDate = dateStr;
-            document.getElementById('current-filter').textContent = `筛选: ${dateStr}`;
-            renderCalendar();
-            
-            const filtered = allMem.filter(m => (m.date || '').startsWith(dateStr));
-            renderMem(filtered);
-        }
-
-        // 按时间范围筛选
-        function filterByRange(range) {
-            const now = new Date();
-            let start, end = now;
-            
-            switch(range) {
-                case 'week':
-                    start = new Date(now);
-                    start.setDate(start.getDate() - start.getDay());
-                    break;
-                case 'month':
-                    start = new Date(now.getFullYear(), now.getMonth(), 1);
-                    break;
-                case 'last7':
-                    start = new Date(now);
-                    start.setDate(start.getDate() - 7);
-                    break;
-                case 'last30':
-                    start = new Date(now);
-                    start.setDate(start.getDate() - 30);
-                    break;
-            }
-            
-            const startStr = start.toISOString().split('T')[0];
-            const endStr = end.toISOString().split('T')[0];
-            document.getElementById('current-filter').textContent = `筛选: ${startStr} ~ ${endStr}`;
-            
-            const filtered = allMem.filter(m => {
-                const d = (m.date || '').split('T')[0];
-                return d >= startStr && d <= endStr;
-            });
-            renderMem(filtered);
-        }
-
-        // 显示全部
-        function showAll() {
-            selectedDate = null;
-            document.getElementById('current-filter').textContent = '';
-            renderCalendar();
-            renderMem(allMem);
-        }
-
-        // 类型分布图表
-        function renderTypeChart(byType) {
-            const ctx = document.getElementById('typeChart').getContext('2d');
-            const labels = { decision: '决策', event: '事件', context: '上下文', learning: '学习' };
-            const colors = { decision: '#ce93d8', event: '#81c784', context: '#4fc3f7', learning: '#ffb74d' };
-            
-            const data = Object.entries(byType).map(([k, v]) => ({
-                label: labels[k] || k,
-                value: v,
-                color: colors[k] || '#888'
-            }));
-            
-            if (typeChart) typeChart.destroy();
-            
-            typeChart = new Chart(ctx, {
-                type: 'doughnut',
-                data: {
-                    labels: data.map(d => d.label),
-                    datasets: [{
-                        data: data.map(d => d.value),
-                        backgroundColor: data.map(d => d.color),
-                        borderWidth: 0
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    plugins: { legend: { position: 'bottom', labels: { color: '#888', font: { size: 10 } } } },
-                    cutout: '60%'
-                }
-            });
-        }
-
-        // 加载记忆
-        async function loadMemories() {
+        // 加载所有记忆并按日期分组
+        async function loadAllMemories() {
             try {
                 const resp = await fetch(`${API}/memories?limit=500`);
                 const data = await resp.json();
-                allMem = data.memories || [];
-                renderMem(allMem);
-            } catch (e) { 
-                document.getElementById('memories').innerHTML = '<div class="empty"><div class="empty-icon">📭</div>加载失败</div>'; 
+                allMemories = data.memories || [];
+                
+                // 按日期分组
+                allDates = {};
+                allMemories.forEach(m => {
+                    const date = (m.date || '').split('T')[0] || 'unknown';
+                    if (!allDates[date]) allDates[date] = [];
+                    allDates[date].push(m);
+                });
+                
+                // 更新统计
+                document.getElementById('total-mem').textContent = allMemories.length;
+                document.getElementById('total-dates').textContent = Object.keys(allDates).length;
+                
+                // 渲染日期列表
+                renderDateList();
+                
+                // 默认显示今天的记忆
+                if (allDates[today]) {
+                    selectDate(today);
+                }
+            } catch (e) {
+                console.error(e);
+                document.getElementById('date-list').innerHTML = '<div class="empty">加载失败</div>';
             }
         }
 
-        // 渲染记忆
-        function renderMem(memories) {
-            const c = document.getElementById('memories');
-            let list = filterType === 'all' ? memories : memories.filter(m => m.type === filterType);
+        // 渲染日期列表
+        function renderDateList() {
+            const container = document.getElementById('date-list');
+            const dates = Object.keys(allDates).sort((a, b) => b.localeCompare(a));
             
-            // 去重
-            const seen = new Set();
-            list = list.filter(m => {
-                const key = m.content?.slice(0, 50);
-                if (seen.has(key)) return false;
-                seen.add(key);
-                return true;
+            if (!dates.length) {
+                container.innerHTML = '<div class="empty"><div class="empty-icon">📭</div>暂无记忆</div>';
+                return;
+            }
+            
+            container.innerHTML = dates.map(date => {
+                const count = allDates[date].length;
+                const isToday = date === today;
+                const displayDate = formatDate(date);
+                
+                return `
+                    <div class="date-item ${isToday ? 'today' : ''} ${selectedDate === date ? 'active' : ''}" 
+                         onclick="selectDate('${date}')">
+                        <span class="date-label">${displayDate}</span>
+                        <span class="date-count">${count}</span>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // 选择日期
+        function selectDate(date) {
+            selectedDate = date;
+            
+            // 更新日期列表高亮
+            document.querySelectorAll('.date-item').forEach(el => {
+                el.classList.remove('active');
+                if (el.getAttribute('onclick').includes(date)) {
+                    el.classList.add('active');
+                }
             });
             
-            if (!list.length) { c.innerHTML = '<div class="empty"><div class="empty-icon">🔍</div>暂无记忆</div>'; return; }
+            // 显示当前日期
+            const dateBox = document.getElementById('current-date-box');
+            dateBox.style.display = 'block';
+            document.getElementById('current-date-val').textContent = formatDate(date);
+            document.getElementById('current-date-count').textContent = `${allDates[date]?.length || 0} 条记忆`;
             
-            c.innerHTML = list.slice(0, 50).map((m, i) => `
-                <div class="memory-item ${m.type}" style="animation-delay: ${i * 0.02}s">
-                    <div class="memory-content">${esc(m.content)}</div>
+            // 渲染记忆
+            renderMemories(allDates[date] || []);
+        }
+
+        // 渲染记忆列表
+        function renderMemories(memories) {
+            const container = document.getElementById('memory-list');
+            
+            if (!memories.length) {
+                container.innerHTML = '<div class="empty"><div class="empty-icon">📭</div>暂无记忆</div>';
+                return;
+            }
+            
+            container.innerHTML = memories.map(m => `
+                <div class="memory-item ${m.type}">
+                    <div class="memory-content">${escapeHtml(m.content)}</div>
                     <div class="memory-meta">
                         <span class="type-badge ${m.type}">${getTypeLabel(m.type)}</span>
-                        <span>${(m.date||'').split('T')[0]}</span>
+                        <span>${(m.date || '').split('T')[0]}</span>
+                        ${m.importance ? `<span>重要: ${m.importance}</span>` : ''}
                     </div>
                 </div>
             `).join('');
+        }
+
+        // 时间范围查询
+        async function timeQuery() {
+            const expr = document.getElementById('time-query').value.trim();
+            if (!expr) {
+                renderDateList();
+                return;
+            }
+            
+            try {
+                const resp = await fetch(`${API}/memories/time-query`, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({time_expression: expr})
+                });
+                const data = await resp.json();
+                
+                if (data.time_range) {
+                    document.getElementById('mem-header').textContent = `📝 ${data.time_range}`;
+                }
+                
+                renderMemories(data.memories || []);
+            } catch (e) {
+                console.error(e);
+            }
+        }
+
+        // 语义搜索
+        async function searchMemories() {
+            const q = document.getElementById('search-input').value.trim();
+            if (!q) {
+                if (selectedDate) {
+                    renderMemories(allDates[selectedDate] || []);
+                }
+                return;
+            }
+            
+            try {
+                const resp = await fetch(`${API}/memories/search`, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({query: q, limit: 30})
+                });
+                const data = await resp.json();
+                
+                document.getElementById('mem-header').textContent = `📝 搜索: "${q}"`;
+                document.getElementById('current-date-box').style.display = 'none';
+                renderMemories(data.results || []);
+            } catch (e) {
+                console.error(e);
+            }
+        }
+
+        // 添加记忆
+        async function addMemory() {
+            const content = document.getElementById('new-memory').value.trim();
+            if (!content) return;
+            
+            try {
+                const resp = await fetch(`${API}/memories`, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({
+                        content,
+                        type: document.getElementById('mem-type').value,
+                        importance: parseFloat(document.getElementById('mem-imp').value) || 0.5
+                    })
+                });
+                
+                if (resp.ok) {
+                    document.getElementById('new-memory').value = '';
+                    loadAllMemories(); // 刷新
+                }
+            } catch (e) {
+                console.error(e);
+            }
         }
 
         // 加载实体
@@ -556,93 +431,73 @@
             try {
                 const resp = await fetch(`${API}/entities`);
                 const data = await resp.json();
-                renderEnt(data.entities || []);
-            } catch (e) { document.getElementById('entities').innerHTML = '<div class="empty">加载失败</div>'; }
+                const entities = data.entities || [];
+                
+                document.getElementById('total-entities').textContent = entities.length;
+                renderEntities(entities);
+            } catch (e) {
+                document.getElementById('entity-list').innerHTML = '<div class="empty">加载失败</div>';
+            }
         }
 
         // 渲染实体
-        function renderEnt(entities) {
-            const c = document.getElementById('entities');
-            if (!entities.length) { c.innerHTML = '<div class="empty"><div class="empty-icon">🔗</div>暂无实体</div>'; return; }
+        function renderEntities(entities) {
+            const container = document.getElementById('entity-list');
             
-            const icons = { project: '📦', tool: '🔧', concept: '💡', person: '👤', location: '📍' };
-            c.innerHTML = entities.slice(0, 20).map(e => `
-                <div class="entity-card">
-                    <div class="entity-icon ${e.entityType}">${icons[e.entityType] || '📌'}</div>
-                    <div class="entity-info">
-                        <div class="entity-name">${esc(e.name)}</div>
-                        <div class="entity-type">${e.entityType} · ${e.mentionCount||1}次提及</div>
+            if (!entities.length) {
+                container.innerHTML = '<div class="empty"><div class="empty-icon">🔗</div>暂无实体</div>';
+                return;
+            }
+            
+            const icons = {project: '📦', tool: '🔧', concept: '💡', person: '👤', location: '📍'};
+            
+            container.innerHTML = entities.slice(0, 20).map(e => `
+                <div class="entity-item">
+                    <div class="entity-icon">${icons[e.entityType] || '📌'}</div>
+                    <div>
+                        <div class="entity-name">${escapeHtml(e.name)}</div>
+                        <div class="entity-meta">${e.entityType} · ${e.mentionCount || 1}次</div>
                     </div>
                 </div>
             `).join('');
         }
 
-        // 搜索
-        async function search() {
-            const q = document.getElementById('q').value.trim();
-            if (!q) { renderMem(allMem); return; }
-            
-            try {
-                const resp = await fetch(`${API}/memories/search`, {
-                    method: 'POST', headers: {'Content-Type':'application/json'},
-                    body: JSON.stringify({query: q, limit: 30})
-                });
-                const data = await resp.json();
-                document.getElementById('current-filter').textContent = `搜索: "${q}"`;
-                renderMem(data.results || []);
-            } catch (e) { console.error(e); }
-        }
-
-        // 时间范围查询
-        async function timeSearch() {
-            const q = document.getElementById('time-q').value.trim();
-            if (!q) return;
-            
-            try {
-                const resp = await fetch(`${API}/memories/time-query`, {
-                    method: 'POST', headers: {'Content-Type':'application/json'},
-                    body: JSON.stringify({time_expression: q})
-                });
-                const data = await resp.json();
-                
-                if (data.time_range) {
-                    document.getElementById('current-filter').textContent = `时间: ${data.time_range}`;
-                }
-                renderMem(data.memories || []);
-            } catch (e) { console.error(e); }
-        }
-
-        function filter(t) {
-            filterType = t;
-            document.querySelectorAll('.tab').forEach(x => x.classList.remove('active'));
-            event.target.classList.add('active');
-            renderMem(allMem);
-        }
-
-        async function searchEnt() {
-            const q = document.getElementById('eq').value.trim();
-            if (!q) { loadEntities(); return; }
+        // 搜索实体
+        async function searchEntities() {
+            const q = document.getElementById('entity-search').value.trim();
+            if (!q) {
+                loadEntities();
+                return;
+            }
             
             const resp = await fetch(`${API}/entities/search`, {
-                method: 'POST', headers: {'Content-Type':'application/json'},
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
                 body: JSON.stringify({query: q, limit: 20})
             });
             const data = await resp.json();
-            renderEnt(data.results || []);
+            renderEntities(data.results || []);
         }
 
-        function switchTab(tab) {
-            document.querySelectorAll('.nav-tab').forEach(x => x.classList.remove('active'));
-            event.target.classList.add('active');
-            // TODO: Implement tab switching
+        // 辅助函数
+        function formatDate(dateStr) {
+            if (dateStr === 'unknown') return '未知日期';
+            const d = new Date(dateStr);
+            const weekdays = ['周日', '周一', '周二', '周三', '周四', '周五', '周六'];
+            return `${dateStr} ${weekdays[d.getDay()]}`;
         }
 
         function getTypeLabel(t) {
-            const labels = { decision: '决策', event: '事件', context: '上下文', learning: '学习' };
+            const labels = {decision: '决策', event: '事件', context: '上下文', learning: '学习'};
             return labels[t] || t;
         }
 
-        function esc(t) { if(!t) return ''; const d = document.createElement('div'); d.textContent = t; return d.innerHTML; }
+        function escapeHtml(t) {
+            if (!t) return '';
+            const div = document.createElement('div');
+            div.textContent = t;
+            return div.innerHTML;
+        }
     </script>
 </body>
 </html>
