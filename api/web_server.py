@@ -30,11 +30,16 @@ def index():
 
 @app.route('/api/memories', methods=['GET'])
 def list_memories():
-    """获取所有记忆"""
+    """获取所有记忆（按用户过滤）"""
     ms = get_memory_system()
     limit = request.args.get('limit', 100, type=int)
+    user_id = request.args.get('user', 'default')
     memories = ms.get_all_memories(limit)
-    return jsonify({"memories": memories, "count": len(memories)})
+    
+    # 按用户过滤
+    memories = [m for m in memories if m.get('user_id', 'default') == user_id]
+    
+    return jsonify({"memories": memories, "count": len(memories), "user_id": user_id})
 
 @app.route('/api/memories', methods=['POST'])
 def add_memory():

@@ -21,6 +21,12 @@
             backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.1);
         }
         h1 { font-size: 24px; display: flex; align-items: center; gap: 10px; }
+        .user-info { display: flex; gap: 16px; font-size: 13px; }
+        .user-badge, .agent-badge { 
+            background: rgba(255,255,255,0.05); padding: 6px 12px; border-radius: 6px;
+        }
+        .user-badge strong { color: #81c784; }
+        .agent-badge strong { color: #4fc3f7; }
         .stats { display: flex; gap: 20px; }
         .stat { text-align: center; }
         .stat-value { font-size: 28px; font-weight: bold; color: #4fc3f7; }
@@ -159,10 +165,14 @@
     <div class="container">
         <header>
             <h1>🧠 Enhanced Memory</h1>
+            <div class="user-info">
+                <span class="user-badge">👤 用户: <strong id="user-id">default</strong></span>
+                <span class="agent-badge">🤖 Agent: <strong id="agent-id">main</strong></span>
+            </div>
             <div class="stats">
                 <div class="stat">
                     <div class="stat-value" id="total-mem">0</div>
-                    <div class="stat-label">总记忆</div>
+                    <div class="stat-label">长期记忆</div>
                 </div>
                 <div class="stat">
                     <div class="stat-value" id="total-dates">0</div>
@@ -237,9 +247,18 @@
         let allDates = {};
         let selectedDate = null;
         const today = new Date().toISOString().split('T')[0];
+        
+        // 当前用户和 Agent（从 URL 参数或默认值）
+        const urlParams = new URLSearchParams(window.location.search);
+        const currentUser = urlParams.get('user') || 'default';
+        const currentAgent = urlParams.get('agent') || 'main';
 
         // 初始化
         document.addEventListener('DOMContentLoaded', () => {
+            // 显示用户信息
+            document.getElementById('user-id').textContent = currentUser;
+            document.getElementById('agent-id').textContent = currentAgent;
+            
             loadAllMemories();
             loadEntities();
             
