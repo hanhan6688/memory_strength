@@ -38,12 +38,16 @@ def list_memories():
     agent_id = request.args.get('agent', 'default')
     memories = ms.get_all_memories(limit)
     
-    # 按 Agent 过滤（如果没有 agent_id 字段，则不过滤）
+    # 按 Agent 过滤
+    # 如果记忆没有 agent_id 字段，则全部返回（兼容旧数据）
     filtered = []
     for m in memories:
-        mem_agent = m.get('agent_id', 'default')
-        # 如果记忆没有 agent_id 或者 agent_id 匹配，则包含
-        if mem_agent == agent_id or (mem_agent == 'default' and agent_id == 'main'):
+        mem_agent = m.get('agent_id')
+        if mem_agent is None:
+            # 没有 agent_id，归为 'main'
+            if agent_id == 'main' or agent_id == 'default':
+                filtered.append(m)
+        elif mem_agent == agent_id:
             filtered.append(m)
     
     return jsonify({"memories": filtered, "count": len(filtered), "agent_id": agent_id})

@@ -350,7 +350,7 @@
         
         // State
         let currentAgent = 'main';
-        let agents = ['main', 'assistant', 'coding'];
+        let agents = ['main'];  // 初始只有 main，后续根据数据动态添加
         let selectedDate = today;
         let currentYear = new Date().getFullYear();
         let currentMonth = new Date().getMonth();
@@ -410,9 +410,15 @@
                 // Update stats
                 document.getElementById('stat-total').textContent = allMemories.length;
                 
+                // 动态添加当前 agent（如果不在列表中）
+                if (!agents.includes(currentAgent)) {
+                    agents.push(currentAgent);
+                }
+                
                 // Render
                 renderCalendar();
                 renderDateList();
+                renderAgentButtons();
                 selectDate(selectedDate);
             } catch (e) {
                 console.error('加载失败:', e);
