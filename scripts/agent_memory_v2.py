@@ -211,7 +211,7 @@ class AgentMemorySystem:
                 timeout=15
             )
             
-            memories = resp.json().get("data", {}).get("Get", {}).get("Memory", [])
+            memories = resp.json().get("data", {}).get("Get", {}).get("Memory") or []
             
             for m in memories:
                 results.append({
@@ -257,7 +257,7 @@ class AgentMemorySystem:
             timeout=10
         )
         
-        return resp.json().get("data", {}).get("Get", {}).get("Memory", [])
+        return resp.json().get("data", {}).get("Get", {}).get("Memory") or []
     
     def get_date_list(self) -> Dict[str, int]:
         """获取日期列表"""
@@ -281,7 +281,7 @@ class AgentMemorySystem:
             timeout=10
         )
         
-        memories = resp.json().get("data", {}).get("Get", {}).get("Memory", [])
+        memories = resp.json().get("data", {}).get("Get", {}).get("Memory") or []
         
         date_counts = {}
         for m in memories:
