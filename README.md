@@ -60,7 +60,7 @@ pip install -r requirements.txt
 
 # 下载 Ollama 模型
 ollama pull nomic-embed-text
-ollama pull qwen2.5:0.5b
+ollama pull Llama3.2:1B
 ```
 
 ## 🔧 CLI 使用
